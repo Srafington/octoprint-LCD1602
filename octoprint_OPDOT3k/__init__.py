@@ -18,7 +18,7 @@ from dot3k import backlight
 from dot3k import lcd
 
 
-class OPDOT3k(octoprint.plugin.StartupPlugin,
+class OPDOT3kPlugin(octoprint.plugin.StartupPlugin,
                     octoprint.plugin.EventHandlerPlugin,
                     octoprint.plugin.ProgressPlugin):
 
@@ -28,49 +28,45 @@ class OPDOT3k(octoprint.plugin.StartupPlugin,
       try:
         print('Loading fake_rpi instead of smbus2')
         sys.modules['smbus2'] = fake_rpi.smbus
-        self.mylcd = fake_rpi.smbus.SMBus(1)
+        self.lcd = fake_rpi.smbus.SMBus(1)
       except:
-        print('Cannot load fake_rpi !')
-    else:
-      self.mylcd = lcd
-      
+        print('Cannot load fake_rpi !')      
       # create block for progress bar
-      self.block = bytearray(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
-      self.block.append(255)
-      self.mylcd.create_char(1,self.block)
+      # self.block = bytearray(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
+      # self.block.append(255)
+      # self.lcd.create_char(1,self.block)
+      # instead of using part of the display to show a progress bar, we'll use the DOT3k's LED bar
     
     # init vars
     self.start_date = 0
 
     # create block for progress bar
-    #self.mylcd.create_char(1,self.block)
+    #self.lcd.create_char(1,self.block)
 
-  def JobIsDone(self,lcd):
+  def JobIsDone(self,localLcd):
 
     # create final anim
     self.birdy = [ '^_-' , '^_^', '-_^' , '^_^', '0_0', '-_-', '^_-', '^_^','@_@','*_*','$_$','<_<','>_>']
 
     for pos in range(0,13):
-      lcd.set_cursor_position = (1,pos)
-      lcd.write(self.birdy[pos])
+      localLcd.set_cursor_position = (1,pos)
+      localLcd.write(self.birdy[pos])
       time.sleep(0.5)
-      lcd.clear()
-    lcd.write('Job is Done    \,,/(^_^)\,,/')
+      localLcd.clear()
+    localLcd.write('Job is Done')
 
       
   def on_after_startup(self):
-    mylcd = self.mylcd
     self._logger.info("plugin initialized !")
 
   
   def on_print_progress(self,storage,path,progress):
-    mylcd = self.mylcd
     # percent = int(progress/6.25)+1
     # completed = '\x01'*percent
-    mylcd.clear()
-    mylcd.write('Completed: '+str(progress)+'%')
-    mylcd.set_cursor_position = (1,0)
-    # mylcd.write(completed)
+    lcd.clear()
+    lcd.write('Completed: '+str(progress)+'%')
+    lcd.set_cursor_position = (1,0)
+    # lcd.write(completed)
     backlight.set_graph(progress/100.0)
     backlight.update()
 
@@ -83,40 +79,39 @@ class OPDOT3k(octoprint.plugin.StartupPlugin,
       average=elapsed/(progress-1)
       remaining=int((100-progress)*average)
       remaining=str(datetime.timedelta(seconds=remaining))
-      mylcd.set_cursor_position = (1,3)
-      mylcd.write(remaining)
+      lcd.set_cursor_position = (1,3)
+      lcd.write(remaining)
 
     if progress==100 :
-      self.JobIsDone(mylcd)
+      self.JobIsDone(lcd)
 
 
 
   def on_event(self,event,payload):
-    mylcd = self.mylcd
       
     if event in "Connected":
-      mylcd.clear()
-      mylcd.write('Connected to:')
-      mylcd.set_cursor_position = (1,0)
-      mylcd.write(payload["port"])
+      lcd.clear()
+      lcd.write('Connected to:')
+      lcd.set_cursor_position = (1,0)
+      lcd.write(payload["port"])
 
     if event in "Shutdown":
-      mylcd.clear()
-      mylcd.write('Bye bye ^_^')
+      lcd.clear()
+      lcd.write('Bye bye ^_^')
       time.sleep(1)
       backlight.off()
       backlight.update()
-      mylcd.close()
+      lcd.exit()
     
     
     if event in "PrinterStateChanged":
       
       if payload["state_string"] in "Offline":
-        mylcd.clear()
-        mylcd.write('Octoprint is not connected')
+        lcd.clear()
+        lcd.write('Octoprint is not connected')
         time.sleep(2)
-        mylcd.clear()
-        mylcd.write('saving a polar bear, eco mode ON')
+        lcd.clear()
+        lcd.write('saving a polar bear, eco mode ON')
         time.sleep(5)
         backlight.off()
         backlight.update()
@@ -124,41 +119,41 @@ class OPDOT3k(octoprint.plugin.StartupPlugin,
       if payload["state_string"] in "Operational":
         backlight.sweep(0.8)
         backlight.update()
-        mylcd.clear()
-        mylcd.write('Printer is       Operational')
+        lcd.clear()
+        lcd.write('Printer is       Operational')
       
       if payload["state_string"] in "Cancelling":
         backlight.sweep(0.2)
         backlight.update()
-        mylcd.clear()
-        mylcd.write('Printer  is Cancelling job') 
+        lcd.clear()
+        lcd.write('Printer  is Cancelling job') 
         time.sleep(0.2)
       
       if payload["state_string"] in "PrintCancelled":
-        mylcd.clear()
+        lcd.clear()
         backlight.sweep(0.0)
         backlight.update()
         time.sleep(0.5)
-        mylcd.write(' Job has been Cancelled (0_0) ' ) 
+        lcd.write(' Job has been Cancelled (0_0) ' ) 
         time.sleep(2)
       
       if payload["state_string"] in "Paused":
         backlight.sweep(0.5)
         backlight.update()
-        mylcd.clear()
+        lcd.clear()
         time.sleep(0.5)
-        mylcd.write('Printer is  Paused') 
+        lcd.write('Printer is  Paused') 
 
       if payload["state_string"] in "Resuming":
         backlight.sweep(0.8)
         backlight.update()
-        mylcd.clear()
-        mylcd.write('Printer is Resuming its job') 
+        lcd.clear()
+        lcd.write('Printer is Resuming its job') 
         time.sleep(0.2)
 
   def get_update_information(self):
       return dict(
-          OPDOT3k=dict(
+          OPDOT3kPlugin=dict(
               displayName="Display-O-Tron-3000",
               displayVersion=self._plugin_version,
 
@@ -175,7 +170,7 @@ __plugin_name__ = "Display-O-Tron-3000"
 
 def __plugin_load__():
 	global __plugin_implementation__
-	__plugin_implementation__ = OPDOT3k()
+	__plugin_implementation__ = OPDOT3kPlugin()
 
 	global __plugin_hooks__
 	__plugin_hooks__ = {
