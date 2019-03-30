@@ -8,7 +8,7 @@ from setuptools import setup
 ### Do not forget to adjust the following variables to your own plugin.
 
 # The plugin's identifier, has to be unique
-plugin_identifier = "LCD1602"
+plugin_identifier = "OPDOT3k"
 
 # The plugin's python package, should be "octoprint_<plugin identifier>", has to be unique
 plugin_package = "OPDOT3kPlugin"
