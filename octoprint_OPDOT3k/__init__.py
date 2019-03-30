@@ -18,7 +18,7 @@ from dot3k import backlight
 from dot3k import lcd
 
 
-class octoprint_OPDOT3k(octoprint.plugin.StartupPlugin,
+class OPDOT3k(octoprint.plugin.StartupPlugin,
                     octoprint.plugin.EventHandlerPlugin,
                     octoprint.plugin.ProgressPlugin):
 
@@ -158,24 +158,24 @@ class octoprint_OPDOT3k(octoprint.plugin.StartupPlugin,
 
   def get_update_information(self):
       return dict(
-          octoprint_OPDOT3k=dict(
-              displayName="OPDOT3k display",
+          OPDOT3k=dict(
+              displayName="Display-O-Tron-3000",
               displayVersion=self._plugin_version,
 
               type="github_release",
               current=self._plugin_version,
-              user="n3bojs4",
-              repo="OctoPrint-OPDOT3k",
+              user="Srafington",
+              repo="OctoPrint-Lcd1602",
 
-              pip="https://github.com/Srafington/octoprint-OPDOT3k/archive/{target}.zip"
+              pip="https://github.com/Srafington/octoprint-Lcd1602/archive/{target}.zip"
           )
       )
 
-__plugin_name__ = "Display-O-Tron 3000"
+__plugin_name__ = "Display-O-Tron-3000"
 
 def __plugin_load__():
 	global __plugin_implementation__
-	__plugin_implementation__ = octoprint_OPDOT3k()
+	__plugin_implementation__ = OPDOT3k()
 
 	global __plugin_hooks__
 	__plugin_hooks__ = {
