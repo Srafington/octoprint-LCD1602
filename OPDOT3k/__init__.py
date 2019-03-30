@@ -8,13 +8,14 @@ from __future__ import absolute_import
 from octoprint.printer.estimation import PrintTimeEstimator
 import octoprint.plugin
 import octoprint.events
-from RPLCD.i2c import CharLCD
 import time
 import datetime
 import os
 import sys
 from fake_rpi import printf
 import fake_rpi
+from dot3k import backlight
+from dot3k import lcd
 
 
 class LCD1602Plugin(octoprint.plugin.StartupPlugin,
@@ -31,7 +32,7 @@ class LCD1602Plugin(octoprint.plugin.StartupPlugin,
       except:
         print('Cannot load fake_rpi !')
     else:
-      self.mylcd = CharLCD(i2c_expander='PCF8574', address=0x27, cols=16, rows=2, backlight_enabled=True, charmap='A00')
+      self.mylcd = lcd
       
       # create block for progress bar
       self.block = bytearray(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
@@ -50,11 +51,11 @@ class LCD1602Plugin(octoprint.plugin.StartupPlugin,
     self.birdy = [ '^_-' , '^_^', '-_^' , '^_^', '0_0', '-_-', '^_-', '^_^','@_@','*_*','$_$','<_<','>_>']
 
     for pos in range(0,13):
-      lcd.cursor_pos = (1,pos)
-      lcd.write_string(self.birdy[pos])
+      lcd.set_cursor_position = (1,pos)
+      lcd.write(self.birdy[pos])
       time.sleep(0.5)
       lcd.clear()
-    lcd.write_string('Job is Done    \,,/(^_^)\,,/')
+    lcd.write('Job is Done    \,,/(^_^)\,,/')
 
       
   def on_after_startup(self):
@@ -64,12 +65,14 @@ class LCD1602Plugin(octoprint.plugin.StartupPlugin,
   
   def on_print_progress(self,storage,path,progress):
     mylcd = self.mylcd
-    percent = int(progress/6.25)+1
-    completed = '\x01'*percent
+    # percent = int(progress/6.25)+1
+    # completed = '\x01'*percent
     mylcd.clear()
-    mylcd.write_string('Completed: '+str(progress)+'%')
-    mylcd.cursor_pos = (1,0)
-    mylcd.write_string(completed)
+    mylcd.write('Completed: '+str(progress)+'%')
+    mylcd.set_cursor_position = (1,0)
+    # mylcd.write(completed)
+    backlight.set_graph(progress/100.0)
+    backlight.update()
 
     if progress==1 :
       self.start_date=time.time()
@@ -80,8 +83,8 @@ class LCD1602Plugin(octoprint.plugin.StartupPlugin,
       average=elapsed/(progress-1)
       remaining=int((100-progress)*average)
       remaining=str(datetime.timedelta(seconds=remaining))
-      mylcd.cursor_pos = (1,3)
-      mylcd.write_string(remaining)
+      mylcd.set_cursor_position = (1,3)
+      mylcd.write(remaining)
 
     if progress==100 :
       self.JobIsDone(mylcd)
@@ -93,15 +96,16 @@ class LCD1602Plugin(octoprint.plugin.StartupPlugin,
       
     if event in "Connected":
       mylcd.clear()
-      mylcd.write_string('Connected to:')
-      mylcd.cursor_pos = (1,0)
-      mylcd.write_string(payload["port"])
+      mylcd.write('Connected to:')
+      mylcd.set_cursor_position = (1,0)
+      mylcd.write(payload["port"])
 
     if event in "Shutdown":
       mylcd.clear()
-      mylcd.write_string('Bye bye ^_^')
+      mylcd.write('Bye bye ^_^')
       time.sleep(1)
-      mylcd._set_backlight_enabled(False)
+      backlight.off()
+      backlight.update()
       mylcd.close()
     
     
@@ -109,37 +113,47 @@ class LCD1602Plugin(octoprint.plugin.StartupPlugin,
       
       if payload["state_string"] in "Offline":
         mylcd.clear()
-        mylcd.write_string('Octoprint is not connected')
+        mylcd.write('Octoprint is not connected')
         time.sleep(2)
         mylcd.clear()
-        mylcd.write_string('saving a polar bear, eco mode ON')
+        mylcd.write('saving a polar bear, eco mode ON')
         time.sleep(5)
-        mylcd._set_backlight_enabled(False)
+        backlight.off()
+        backlight.update()
       
       if payload["state_string"] in "Operational":
-        mylcd._set_backlight_enabled(True)
+        backlight.sweep(0.8)
+        backlight.update()
         mylcd.clear()
-        mylcd.write_string('Printer is       Operational')
+        mylcd.write('Printer is       Operational')
       
       if payload["state_string"] in "Cancelling":
+        backlight.sweep(0.2)
+        backlight.update()
         mylcd.clear()
-        mylcd.write_string('Printer  is Cancelling job') 
+        mylcd.write('Printer  is Cancelling job') 
         time.sleep(0.2)
       
       if payload["state_string"] in "PrintCancelled":
         mylcd.clear()
+        backlight.sweep(0.0)
+        backlight.update()
         time.sleep(0.5)
-        mylcd.write_string(' Job has been Cancelled (0_0) ' ) 
+        mylcd.write(' Job has been Cancelled (0_0) ' ) 
         time.sleep(2)
       
       if payload["state_string"] in "Paused":
+        backlight.sweep(0.5)
+        backlight.update()
         mylcd.clear()
         time.sleep(0.5)
-        mylcd.write_string('Printer is  Paused') 
+        mylcd.write('Printer is  Paused') 
 
       if payload["state_string"] in "Resuming":
+        backlight.sweep(0.8)
+        backlight.update()
         mylcd.clear()
-        mylcd.write_string('Printer is Resuming its job') 
+        mylcd.write('Printer is Resuming its job') 
         time.sleep(0.2)
 
   def get_update_information(self):
@@ -153,11 +167,11 @@ class LCD1602Plugin(octoprint.plugin.StartupPlugin,
               user="n3bojs4",
               repo="OctoPrint-Lcd1602",
 
-              pip="https://github.com/n3bojs4/octoprint-LCD1602/archive/{target}.zip"
+              pip="https://github.com/Srafington/octoprint-LCD1602/archive/{target}.zip"
           )
       )
 
-__plugin_name__ = "LCD1602 I2c display"
+__plugin_name__ = "Display-O-Tron 3000"
 
 def __plugin_load__():
 	global __plugin_implementation__
