@@ -1,7 +1,7 @@
 # coding=utf-8
 
 """
-  LCD1602 Plugin for Octoprint
+  OPDOT3k Plugin for Octoprint
 """
 
 from __future__ import absolute_import
@@ -18,12 +18,12 @@ from dot3k import backlight
 from dot3k import lcd
 
 
-class OPDOT3kPlugin(octoprint.plugin.StartupPlugin,
+class octoprint_OPDOT3k(octoprint.plugin.StartupPlugin,
                     octoprint.plugin.EventHandlerPlugin,
                     octoprint.plugin.ProgressPlugin):
 
   def __init__(self):
-    if (os.getenv('LCD1602_DOCKER')):
+    if (os.getenv('OPDOT3k_DOCKER')):
       print('We are running in test environnement, no i2c device attached.')
       try:
         print('Loading fake_rpi instead of smbus2')
@@ -158,16 +158,16 @@ class OPDOT3kPlugin(octoprint.plugin.StartupPlugin,
 
   def get_update_information(self):
       return dict(
-          OPDOT3kPlugin=dict(
-              displayName="LCD1602 display",
+          octoprint_OPDOT3k=dict(
+              displayName="OPDOT3k display",
               displayVersion=self._plugin_version,
 
               type="github_release",
               current=self._plugin_version,
               user="n3bojs4",
-              repo="OctoPrint-Lcd1602",
+              repo="OctoPrint-OPDOT3k",
 
-              pip="https://github.com/Srafington/octoprint-LCD1602/archive/{target}.zip"
+              pip="https://github.com/Srafington/octoprint-OPDOT3k/archive/{target}.zip"
           )
       )
 
@@ -175,7 +175,7 @@ __plugin_name__ = "Display-O-Tron 3000"
 
 def __plugin_load__():
 	global __plugin_implementation__
-	__plugin_implementation__ = OPDOT3kPlugin()
+	__plugin_implementation__ = octoprint_OPDOT3k()
 
 	global __plugin_hooks__
 	__plugin_hooks__ = {
