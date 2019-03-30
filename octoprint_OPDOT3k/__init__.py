@@ -12,8 +12,6 @@ import time
 import datetime
 import os
 import sys
-from fake_rpi import printf
-import fake_rpi
 from dot3k import backlight
 from dot3k import lcd
 
@@ -23,20 +21,6 @@ class OPDOT3kPlugin(octoprint.plugin.StartupPlugin,
                     octoprint.plugin.ProgressPlugin):
 
   def __init__(self):
-    if (os.getenv('OPDOT3k_DOCKER')):
-      print('We are running in test environnement, no i2c device attached.')
-      try:
-        print('Loading fake_rpi instead of smbus2')
-        sys.modules['smbus2'] = fake_rpi.smbus
-        self.lcd = fake_rpi.smbus.SMBus(1)
-      except:
-        print('Cannot load fake_rpi !')      
-      # create block for progress bar
-      # self.block = bytearray(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
-      # self.block.append(255)
-      # self.lcd.create_char(1,self.block)
-      # instead of using part of the display to show a progress bar, we'll use the DOT3k's LED bar
-    
     # init vars
     self.start_date = 0
 
