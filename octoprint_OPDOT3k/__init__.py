@@ -33,13 +33,13 @@ class OPDOT3kPlugin(octoprint.plugin.StartupPlugin,
     self.birdy = [ '^_-' , '^_^', '-_^' , '^_^', '0_0', '-_-', '^_-', '^_^','@_@','*_*','$_$','<_<','>_>']
 
     for pos in range(0,13):
-      localLcd.set_cursor_position = (1,pos)
+      local# lcd.set_cursor_position(1,pos)
       localLcd.write(self.birdy[pos])
       time.sleep(0.5)
       localLcd.clear()
     localLcd.write('Job is Done')
     backlight.rgb(255,255,255)
-    backlight.update();
+    backlight.update()
     for i in range(0,100):
       backlight.set_graph((100-i)/100.0)
       time.sleep(0.05)
@@ -54,7 +54,7 @@ class OPDOT3kPlugin(octoprint.plugin.StartupPlugin,
     # completed = '\x01'*percent
     lcd.clear()
     lcd.write('Completed: '+str(progress)+'%')
-    lcd.set_cursor_position = (1,0)
+    # lcd.set_cursor_position(1,0)
     # lcd.write(completed)
     backlight.set_graph(progress/100.0)
     backlight.sweep(progress/100.0)
@@ -69,8 +69,8 @@ class OPDOT3kPlugin(octoprint.plugin.StartupPlugin,
       average=elapsed/(progress-1)
       remaining=int((100-progress)*average)
       remaining=str(datetime.timedelta(seconds=remaining))
-      lcd.set_cursor_position = (1,2)
-      lcd.write('ETC: ')
+      # lcd.set_cursor_position(1,2)
+      lcd.write('  ETC: ')
       lcd.write(remaining)
 
     if progress==100 :
@@ -83,7 +83,7 @@ class OPDOT3kPlugin(octoprint.plugin.StartupPlugin,
     if event in "Connected":
       lcd.clear()
       lcd.write('Connected to:')
-      lcd.set_cursor_position = (1,0)
+      # lcd.set_cursor_position(1,0)
       lcd.write(payload["port"])
 
     if event in "Shutdown":
