@@ -38,6 +38,11 @@ class OPDOT3kPlugin(octoprint.plugin.StartupPlugin,
       time.sleep(0.5)
       localLcd.clear()
     localLcd.write('Job is Done')
+    backlight.rgb(255,255,255)
+    backlight.update();
+    for i in range(0,100):
+      backlight.set_graph((100-i)/100.0)
+      time.sleep(0.05)
 
       
   def on_after_startup(self):
@@ -52,6 +57,7 @@ class OPDOT3kPlugin(octoprint.plugin.StartupPlugin,
     lcd.set_cursor_position = (1,0)
     # lcd.write(completed)
     backlight.set_graph(progress/100.0)
+    backlight.sweep(progress/100.0)
     backlight.update()
 
     if progress==1 :
@@ -63,7 +69,8 @@ class OPDOT3kPlugin(octoprint.plugin.StartupPlugin,
       average=elapsed/(progress-1)
       remaining=int((100-progress)*average)
       remaining=str(datetime.timedelta(seconds=remaining))
-      lcd.set_cursor_position = (1,3)
+      lcd.set_cursor_position = (1,2)
+      lcd.write('ETC: ')
       lcd.write(remaining)
 
     if progress==100 :
@@ -101,13 +108,13 @@ class OPDOT3kPlugin(octoprint.plugin.StartupPlugin,
         backlight.update()
       
       if payload["state_string"] in "Operational":
-        backlight.sweep(0.8)
+        backlight.rgb(255,255,255)
         backlight.update()
         lcd.clear()
         lcd.write('Printer is       Operational')
       
       if payload["state_string"] in "Cancelling":
-        backlight.sweep(0.2)
+        backlight.rgb(255,0,255)
         backlight.update()
         lcd.clear()
         lcd.write('Printer  is Cancelling job') 
@@ -115,21 +122,21 @@ class OPDOT3kPlugin(octoprint.plugin.StartupPlugin,
       
       if payload["state_string"] in "PrintCancelled":
         lcd.clear()
-        backlight.sweep(0.0)
+        backlight.rgb(255,0,0)
         backlight.update()
         time.sleep(0.5)
         lcd.write(' Job has been Cancelled (0_0) ' ) 
         time.sleep(2)
       
       if payload["state_string"] in "Paused":
-        backlight.sweep(0.5)
+        backlight.rgb(255,255,0)
         backlight.update()
         lcd.clear()
         time.sleep(0.5)
         lcd.write('Printer is  Paused') 
 
       if payload["state_string"] in "Resuming":
-        backlight.sweep(0.8)
+        backlight.rgb(0,255,255)
         backlight.update()
         lcd.clear()
         lcd.write('Printer is Resuming its job') 
